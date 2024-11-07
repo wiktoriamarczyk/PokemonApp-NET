@@ -6,9 +6,11 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 
 namespace PokeAPI
 {
@@ -20,13 +22,20 @@ namespace PokeAPI
         PokemonGridBuilder pokemonGridBuilder;
         PokeAPIController pokeAPIController = PokeAPIController.Instance;
 
-        int _currentPage = 1;
+        const string searchBoxWatermarkName = "watermark";
+        const int minPage = 1;
+
+        int _currentPage = minPage;
         int currentPage
         {
             get => _currentPage;
             set
             {
-                _currentPage = value;
+                if (value > 0)
+                {
+                    _currentPage = value;
+                    UpdateButtonActivity();
+                }
             }
         }
 
@@ -34,6 +43,7 @@ namespace PokeAPI
         {
             InitializeComponent();
             pokemonGridBuilder = new PokemonGridBuilder();
+            UpdateButtonActivity();
             LoadPokemonGrid();
         }
 
@@ -79,7 +89,7 @@ namespace PokeAPI
 
             var border = new Border
             {
-                BorderBrush = System.Windows.Media.Brushes.Transparent,
+                BorderBrush = System.Windows.Media.Brushes.Black,
                 Child = stackPanel
             };
 
@@ -88,9 +98,9 @@ namespace PokeAPI
                 Content = border,
                 Padding = new Thickness(0),
                 Margin = new Thickness(5),
-                BorderBrush = Brushes.SteelBlue,
+                BorderBrush = Brushes.DarkSlateGray,
                 BorderThickness = new Thickness(3),
-                Background = Brushes.Transparent
+                Background = new SolidColorBrush(Color.FromArgb(150, 255, 255, 255))
             };
 
             button.Click += (s, e) => OnPokemonElementClick(pokemonData);
@@ -100,13 +110,23 @@ namespace PokeAPI
 
         async void OnPokemonElementClick(PokemonCompactData pokemonData)
         {
-            var evol = pokeAPIController.GetPokemonEvolutionChain(pokemonData.pokemonBaseData.speciesURL);
-            await evol;
-            var x = evol.Result.evolutionElementsIds;
+            StatisticPanel statisticPanel = new StatisticPanel();
+            pokemonData = await pokemonGridBuilder.InitPokemonExtendedData(pokemonData);
+            statisticPanel.Show();
+            this.Close();
+            statisticPanel.Init(pokemonData);
         }
 
         void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (sender is TextBox box)
+            {
+                if (string.IsNullOrEmpty(box.Text))
+                    box.Background = (ImageBrush)FindResource(searchBoxWatermarkName);
+                else
+                    box.Background = Brushes.White;
+            }
+
             string searchText = SearchTextBox.Text.ToLower();
 
             if (string.IsNullOrEmpty(searchText))
@@ -124,14 +144,24 @@ namespace PokeAPI
             }
         }
 
-        private void ButtonPreviousPage_Click(object sender, RoutedEventArgs e)
+        void UpdateButtonActivity()
         {
-
+            if (currentPage == minPage)
+                PreviousPageButton.Visibility = Visibility.Hidden;
+            else if (PreviousPageButton.Visibility == Visibility.Hidden)
+                PreviousPageButton.Visibility = Visibility.Visible;
         }
 
-        private void ButtonNextPage_Click(object sender, RoutedEventArgs e)
+        void ButtonPreviousPage_Click(object sender, RoutedEventArgs e)
         {
+            currentPage--;
+            LoadPokemonGrid();
+        }
 
+        void ButtonNextPage_Click(object sender, RoutedEventArgs e)
+        {
+            currentPage++;
+            LoadPokemonGrid();
         }
     }
 }

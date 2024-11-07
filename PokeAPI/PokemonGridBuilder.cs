@@ -49,17 +49,13 @@ namespace PokeAPI
 
         // Initialize extended information about pokemon (abilities, evolution chain)
         // displayed in the details panel
-        private async Task<PokemonCompactData> InitPokemonExtendedData(PokemonCompactData pokemonData)
+        public async Task<PokemonCompactData> InitPokemonExtendedData(PokemonCompactData pokemonData)
         {
             var pokemonCompactData = _pokemonsData.First(p => p == pokemonData);
             pokemonCompactData.pokemonExtendedData = new PokemonExtendedData();
             pokemonCompactData.pokemonExtendedData.abilities = new List<AbilityCompactData>();
             int pokemonId = pokemonData.pokemonBaseData.id;
-            Pokemon pokemon = PokeAPIController.Instance.pokemons.First(p => p.Id == pokemonId);
-            if (pokemon == null)
-            {
-                pokemon = await PokeAPIController.Instance.GetPokemonData(pokemonId);
-            }
+            Pokemon pokemon = await PokeAPIController.Instance.GetPokemonData(pokemonId);
             foreach (var ability in pokemon.Abilities)
             {
                 string descriptionURL = await PokeAPIController.Instance.GetAbilityDescription(ability.Ability.Name);

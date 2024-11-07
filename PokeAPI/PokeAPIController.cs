@@ -11,16 +11,15 @@ namespace PokeAPI
 {
     public class PokeAPIController
     {
-        private static PokeAPIController _instance;
         public static PokeAPIController Instance => _instance ??= new PokeAPIController();
+        static PokeAPIController _instance;
 
-        public HashSet<Pokemon> pokemons { get; private set; } = new HashSet<Pokemon>();
-        public List<EvolutionChainCompactData> evolutionChains { get; private set; } = new List<EvolutionChainCompactData>();
+        HashSet<Pokemon> pokemons { get; set; } = new HashSet<Pokemon>();
+        List<EvolutionChainCompactData> evolutionChains { get; set; } = new List<EvolutionChainCompactData>();
 
+        PokeApiClient pokeApiNet = new PokeApiClient();
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         CancellationToken cancelToken;
-        //PokeAPIBackend pokeAPIBackend = new PokeAPIBackend();
-        PokeApiClient pokeApiNet = new PokeApiClient();
 
         int maxPokemonCount;
         const string language = "en";
@@ -106,9 +105,13 @@ namespace PokeAPI
             return ability?.EffectEntries.FirstOrDefault(e => e.Language.Name == language)?.Effect ?? string.Empty;
         }
 
+        public EvolutionChainCompactData? GetPokemonEvolutionChain(int evolutionId)
+        {
+            return evolutionChains.FirstOrDefault(e => e.evolutionId == evolutionId);
+        }
+
         public async Task<EvolutionChainCompactData> GetPokemonEvolutionChain(string speciesUrl)
         {
-            //PokemonSpecies species = await pokeAPIBackend.GetResourceByUrlAsync<PokemonSpecies>(speciesUrl, cancellationTokenSource.Token);
             Uri uri = new Uri(speciesUrl);
             string speciesId = uri.Segments[^1].TrimEnd('/');
 
@@ -118,7 +121,6 @@ namespace PokeAPI
                 return null;
             }
 
-            //EvolutionChain evolutionChain = await pokeAPIBackend.GetResourceByUrlAsync<EvolutionChain>(species.EvolutionChain.Url, cancellationTokenSource.Token);
             uri = new Uri(species.EvolutionChain.Url);
             string evolutionChainId = uri.Segments[^1].TrimEnd('/');
 

@@ -12,6 +12,8 @@
     <None Remove="Images\arrow-left.png" />
     <None Remove="Images\arrow-right.png" />
     <None Remove="Images\background.png" />
+    <None Remove="Images\home.png" />
+    <None Remove="Images\placeholder.jpg" />
     <None Remove="Images\pokemon-logo.png" />
   </ItemGroup>
 
@@ -27,6 +29,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\background.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\home.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\placeholder.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\pokemon-logo.png">

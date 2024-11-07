@@ -6,21 +6,28 @@
         xmlns:local="clr-namespace:PokeAPI"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Title="Pokedex" Height="1000" Width="1200">
+        Title="Pokedex" Height="1000" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Consolas">
+
+    <Window.Resources>
+        <ImageBrush x:Key="watermark" ImageSource="pack://application:,,,/Images/placeholder.jpg" AlignmentX="Left" Stretch="Uniform" />
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="150"/>
+            <!-- Row for logo -->
+            <RowDefinition Height="750"/>
             <RowDefinition Height="100"/>
-            <!-- Rząd na obraz na górze -->
-            <RowDefinition Height="800"/>
-            <RowDefinition Height="100"/>
-            <!-- Rząd na siatkę pokemonów -->
+            <!-- Row for pokemon grid -->
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Tło -->
+        <!-- Row 0: Background -->
         <Image Source="./Images/background.png" Stretch="UniformToFill" Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="-1">
             <Image.Effect>
                 <BlurEffect Radius="40"/>
@@ -28,48 +35,46 @@
         </Image>
 
         <!-- Logo -->
-        <Image Source="./Images/pokemon-logo.png" Grid.Row="0" HorizontalAlignment="Center" Margin="0,5,0,5"/>
+        <Image Source="./Images/pokemon-logo.png" Grid.Row="0" HorizontalAlignment="Center"/>
 
-        <!-- Pole wyszukiwania w prawym górnym rogu -->
+        <!-- Search bar -->
         <TextBox Name="SearchTextBox" Grid.Row="0" Width="200" Height="30" Margin="30" TextChanged="SearchTextBox_TextChanged"
-                 VerticalAlignment="Center" HorizontalAlignment="Right"
-                 BorderBrush="SteelBlue" BorderThickness="2" FontFamily="Consolas"
-                 TextWrapping="Wrap" TextAlignment="Left" VerticalContentAlignment="Center"  />
+                 VerticalAlignment="Center" HorizontalAlignment="Right" Background="{StaticResource watermark}"
+                 BorderBrush="DarkSlateGray" BorderThickness="2" FontSize="17"
+                 TextWrapping="Wrap" TextAlignment="Left" VerticalContentAlignment="Center" FontStyle="Italic"/>
 
-        <!-- Siatka z elementami pokemonów -->
+        <!-- Row 1: Pokemon grid -->
         <UniformGrid Grid.Row="1" Columns="3" Rows="3" Name="PokemonGridDisplay" Margin="20">
-            <!-- Miejsca na elementy, które będą dynamicznie dodawane z kodu C# -->
+            <!-- Added dynamically from code -->
         </UniformGrid>
 
-        <!-- Przyciski w ostatnim rzędzie -->
+        <!-- Row 2: Buttons -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <!-- Lewy przycisk -->
+                <!-- column for left -->
                 <ColumnDefinition Width="*"/>
-                <!-- Środek - puste miejsce -->
+                <!-- Empty place -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Prawy przycisk -->
+                <!-- Column for right button -->
             </Grid.ColumnDefinitions>
 
-            <!-- Lewy przycisk -->
-            <Button Grid.Column="0" Width="40" Height="60" HorizontalAlignment="Left" Margin="20 0,0,20"
+            <!-- Previous page button -->
+            <Button x:Name="PreviousPageButton" Grid.Column="0" Width="50" Height="50" HorizontalAlignment="Left" Margin="30 0,0,50"
                     BorderThickness="0" Background="Transparent" Click="ButtonPreviousPage_Click">
                 <Button.Content>
-                    <Image Source="./Images/arrow-left.png" Stretch="UniformToFill"/>
+                    <Image Source="./Images/arrow-left.png" Stretch="Uniform"/>
                 </Button.Content>
             </Button>
 
-            <!-- Prawy przycisk -->
-            <Button Grid.Column="2"  Width="40" Height="60" HorizontalAlignment="Right" Margin="0,0,20,20"
+            <!-- Next page button -->
+            <Button Grid.Column="2"  Width="50" Height="50" HorizontalAlignment="Right" Margin="0,0,30,50"
                     BorderThickness="0" Background="Transparent" Click="ButtonNextPage_Click">
                 <Button.Content>
-                    <Image Source="./Images/arrow-right.png" Stretch="UniformToFill"/>
+                    <Image Source="./Images/arrow-right.png" Stretch="Uniform"/>
                 </Button.Content>
             </Button>
         </Grid>
-
-
 
     </Grid>
 </Window>
