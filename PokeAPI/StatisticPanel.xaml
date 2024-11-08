@@ -29,7 +29,7 @@
         <Button Grid.Row="0" Width="50" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
                 BorderThickness="0" Background="Transparent" Click="ReturnToMainPanelButton_Click">
             <Button.Content>
-                <Image Source="./Images/home.png" Stretch="Uniform"/>
+                <Image Source="./Images/home.png" Stretch="UniformToFill"/>
             </Button.Content>
         </Button>
 

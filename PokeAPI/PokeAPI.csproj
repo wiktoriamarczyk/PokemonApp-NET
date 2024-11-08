@@ -14,6 +14,7 @@
     <None Remove="Images\background.png" />
     <None Remove="Images\home.png" />
     <None Remove="Images\placeholder.jpg" />
+    <None Remove="Images\pokeball.png" />
     <None Remove="Images\pokemon-logo.png" />
   </ItemGroup>
 
@@ -35,6 +36,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\placeholder.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\pokeball.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\pokemon-logo.png">

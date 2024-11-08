@@ -25,6 +25,8 @@ namespace PokeAPI
         PokeAPIController pokeAPIController = PokeAPIController.Instance;
         ObservableCollection<PokemonChainDisplay> pokemons;
 
+        int pokemonId;
+
         const string heightUnit = "cm";
         const string weightUnit = "kg";
 
@@ -32,6 +34,7 @@ namespace PokeAPI
         {
             public string ImageUrl;
             public string Name;
+            public int Id;
         }
 
         public StatisticPanel()
@@ -41,16 +44,18 @@ namespace PokeAPI
 
         public async void Init(PokemonCompactData pokemonData)
         {
+            pokemonId = pokemonData.pokemonBaseData.id;
             pokemons = new ObservableCollection<PokemonChainDisplay>();
             var evolutionChain = pokeAPIController.GetPokemonEvolutionChain(pokemonData.pokemonExtendedData.evolutionChainId);
 
             foreach (var pokemonId in evolutionChain.evolutionElementsIds)
             {
-                var pokemon = await pokeAPIController.GetPokemonData(pokemonId);
+                var pokemon = await pokeAPIController.GetPokemon(pokemonId);
                 PokemonChainDisplay pokemonChainDisplay = new PokemonChainDisplay
                 {
                     ImageUrl = pokemon.Sprites.Other.OfficialArtwork.FrontDefault,
-                    Name = pokemon.Name
+                    Name = pokemon.Name,
+                    Id = pokemon.Id
                 };
 
                 pokemons.Add(pokemonChainDisplay);
@@ -152,10 +157,27 @@ namespace PokeAPI
 
             foreach (var pokemon in pokemons)
             {
+                bool circleOutline = false;
+                if (pokemon.Id == pokemonId)
+                {
+                    circleOutline = true;
+                }
+
                 if (column >= PokemonEvolutionChain.ColumnDefinitions.Count)
                 {
                     PokemonEvolutionChain.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 }
+
+                var pokemonBorder = new Border
+                {
+                    Width = 200,
+                    Height = 200,
+                    CornerRadius = new CornerRadius(100),
+                    BorderThickness = new Thickness(circleOutline ? 5 : 0),
+                    BorderBrush = circleOutline ? new SolidColorBrush(Colors.Green) : null,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
 
                 var pokemonImage = new Image
                 {
@@ -163,6 +185,8 @@ namespace PokeAPI
                     Width = 200,
                     Height = 200
                 };
+
+                pokemonBorder.Child = pokemonImage;
 
                 var pokemonName = new TextBlock
                 {
@@ -174,13 +198,13 @@ namespace PokeAPI
                 };
 
                 // Image is displayed in the first row
-                Grid.SetRow(pokemonImage, 0);
-                Grid.SetColumn(pokemonImage, column);
+                Grid.SetRow(pokemonBorder, 0);
+                Grid.SetColumn(pokemonBorder, column);
                 // Name is displayed in the second row
                 Grid.SetRow(pokemonName, 1);
                 Grid.SetColumn(pokemonName, column);
 
-                PokemonEvolutionChain.Children.Add(pokemonImage);
+                PokemonEvolutionChain.Children.Add(pokemonBorder);
                 PokemonEvolutionChain.Children.Add(pokemonName);
 
                 column++;

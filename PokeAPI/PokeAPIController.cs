@@ -30,21 +30,24 @@ namespace PokeAPI
             cancelToken = cancellationTokenSource.Token;
         }
 
+        ~PokeAPIController()
+        {
+            CancelTasks();
+        }
+
         public void CancelTasks()
         {
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
         }
 
-        public async Task<int> GetPokemonCount()
+        async Task<int> GetPokemonCount()
         {
-            //var data = await pokeAPIBackend.GetApiResourcePageAsync<PokemonApiResource>(1, 0, cancellationTokenSource.Token);
-            //return data.Count;
             var data = await pokeApiNet.GetNamedResourcePageAsync<Pokemon>(1, 0, cancellationTokenSource.Token);
             return data.Count;
         }
 
-        public async Task<List<Pokemon>> GetPokemonsData(int startIndex, int endIndex)
+        public async Task<List<Pokemon>> GetPokemons(int startIndex, int endIndex)
         {
             bool isRangeValid = await ValidateRange(startIndex, endIndex);
             if (!isRangeValid)
@@ -55,7 +58,7 @@ namespace PokeAPI
             List<Pokemon> pokemons = new List<Pokemon>();
             for (int id = startIndex; id < endIndex; ++id)
             {
-                Pokemon pokemon = await GetPokemonData(id);
+                Pokemon pokemon = await GetPokemon(id);
                 if (pokemon != null)
                 {
                     pokemons.Add(pokemon);
@@ -65,14 +68,13 @@ namespace PokeAPI
             return pokemons;
         }
 
-        public async Task<Pokemon> GetPokemonData(int id)
+        public async Task<Pokemon> GetPokemon(int id)
         {
             Pokemon pokemon = pokemons.FirstOrDefault(p => p.Id == id);
             if (pokemon != null)
             {
                 return pokemon;
             }
-            // pokemon = await pokeAPIBackend.GetResourceAsync<Pokemon>(id, cancelToken);
             pokemon = await pokeApiNet.GetResourceAsync<Pokemon>(id);
             if (pokemon != null)
             {
@@ -81,14 +83,13 @@ namespace PokeAPI
             return pokemon;
         }
 
-        public async Task<Pokemon> GetPokemonData(string name)
+        public async Task<Pokemon> GetPokemon(string name)
         {
             Pokemon pokemon = pokemons.FirstOrDefault(p => p.Name == name);
             if (pokemon != null)
             {
                 return pokemon;
             }
-            // pokemon = await pokeAPIBackend.GetResourceAsync<Pokemon>(name, cancelToken);
             pokemon = await pokeApiNet.GetResourceAsync<Pokemon>(name);
             if (pokemon != null)
             {
@@ -100,7 +101,6 @@ namespace PokeAPI
         public async Task<string> GetAbilityDescription(string abilityName)
         {
             string result = string.Empty;
-            // Ability ability = await pokeAPIBackend.GetResourceAsync<Ability>(abilityName, cancellationTokenSource.Token);
             Ability ability = await pokeApiNet.GetResourceAsync<Ability>(abilityName);
             return ability?.EffectEntries.FirstOrDefault(e => e.Language.Name == language)?.Effect ?? string.Empty;
         }
@@ -145,7 +145,7 @@ namespace PokeAPI
 
             ChainLink chain = evolutionChain.Chain;
             string pokemonName = chain.Species.Name;
-            Pokemon pokemon = await GetPokemonData(pokemonName);
+            Pokemon pokemon = await GetPokemon(pokemonName);
             if (pokemon == null)
             {
                 return null;
@@ -161,7 +161,7 @@ namespace PokeAPI
             do
             {
                 pokemonName = chain.EvolvesTo[0].Species.Name;
-                pokemon = await GetPokemonData(pokemonName);
+                pokemon = await GetPokemon(pokemonName);
                 if (pokemon != null)
                 {
                     evolutionChainData.evolutionElementsIds.Add(pokemon.Id);
@@ -175,7 +175,7 @@ namespace PokeAPI
             return evolutionChainData;
         }
 
-        private async Task<bool> ValidateRange(int startIndex, int endIndex)
+        async Task<bool> ValidateRange(int startIndex, int endIndex)
         {
             if (maxPokemonCount == default)
             {

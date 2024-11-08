@@ -25,7 +25,7 @@ namespace PokeAPI
         const string searchBoxWatermarkName = "watermark";
         const int minPage = 1;
 
-        int _currentPage = minPage;
+        static int _currentPage = minPage;
         int currentPage
         {
             get => _currentPage;
@@ -34,7 +34,7 @@ namespace PokeAPI
                 if (value > 0)
                 {
                     _currentPage = value;
-                    UpdateButtonActivity();
+                    UpdateButtonVisibilityBasedOnPage();
                 }
             }
         }
@@ -43,20 +43,24 @@ namespace PokeAPI
         {
             InitializeComponent();
             pokemonGridBuilder = new PokemonGridBuilder();
-            UpdateButtonActivity();
+            UpdateButtonVisibilityBasedOnPage();
             LoadPokemonGrid();
         }
 
         async void LoadPokemonGrid()
         {
             PokemonGridDisplay.Children.Clear();
-            var pokemons = await pokemonGridBuilder.CreatePokemonsGrid(currentPage);
+            SetButtonsEnableState(false);
 
+            var pokemons = await pokemonGridBuilder.CreatePokemonsGrid(currentPage);
             foreach (var pokemon in pokemons)
             {
                 var pokemonElement = CreatePokemonElement(pokemon);
+
                 PokemonGridDisplay.Children.Add(pokemonElement);
             }
+
+            SetButtonsEnableState(true);
         }
 
         Button CreatePokemonElement(PokemonCompactData pokemonData)
@@ -98,7 +102,7 @@ namespace PokeAPI
                 Content = border,
                 Padding = new Thickness(0),
                 Margin = new Thickness(5),
-                BorderBrush = Brushes.DarkSlateGray,
+                BorderBrush = Brushes.CornflowerBlue,
                 BorderThickness = new Thickness(3),
                 Background = new SolidColorBrush(Color.FromArgb(150, 255, 255, 255))
             };
@@ -117,6 +121,7 @@ namespace PokeAPI
             statisticPanel.Init(pokemonData);
         }
 
+        // TO FIX
         void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is TextBox box)
@@ -144,12 +149,20 @@ namespace PokeAPI
             }
         }
 
-        void UpdateButtonActivity()
+        void UpdateButtonVisibilityBasedOnPage()
         {
             if (currentPage == minPage)
                 PreviousPageButton.Visibility = Visibility.Hidden;
             else if (PreviousPageButton.Visibility == Visibility.Hidden)
                 PreviousPageButton.Visibility = Visibility.Visible;
+        }
+
+        void SetButtonsEnableState(bool isEnabled)
+        {
+            PreviousPageButton.IsEnabled = isEnabled ? true : false;
+            NextPageButton.IsEnabled = isEnabled ? true : false;
+            PokeballListButton.IsEnabled = isEnabled ? true : false;
+            LogoutButton.IsEnabled = isEnabled ? true : false;
         }
 
         void ButtonPreviousPage_Click(object sender, RoutedEventArgs e)
@@ -162,6 +175,18 @@ namespace PokeAPI
         {
             currentPage++;
             LoadPokemonGrid();
+        }
+
+        void PokeballListButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoginPanel loginPanel = new LoginPanel();
+            this.Close();
+            loginPanel.Show();
         }
     }
 }

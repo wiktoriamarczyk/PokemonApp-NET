@@ -24,7 +24,7 @@ namespace PokeAPI
             _pokemonsData.Clear();
             int startIndex = (page - 1) * maxElementsInGrid + 1;
             int endIndex = startIndex + maxElementsInGrid;
-            List<Pokemon> pokemons = await PokeAPIController.Instance.GetPokemonsData(startIndex, endIndex);
+            List<Pokemon> pokemons = await PokeAPIController.Instance.GetPokemons(startIndex, endIndex);
 
             List<Task<PokemonCompactData>> pokemonElementsTasks = new List<Task<PokemonCompactData>>();
 
@@ -55,7 +55,7 @@ namespace PokeAPI
             pokemonCompactData.pokemonExtendedData = new PokemonExtendedData();
             pokemonCompactData.pokemonExtendedData.abilities = new List<AbilityCompactData>();
             int pokemonId = pokemonData.pokemonBaseData.id;
-            Pokemon pokemon = await PokeAPIController.Instance.GetPokemonData(pokemonId);
+            Pokemon pokemon = await PokeAPIController.Instance.GetPokemon(pokemonId);
             foreach (var ability in pokemon.Abilities)
             {
                 string descriptionURL = await PokeAPIController.Instance.GetAbilityDescription(ability.Ability.Name);

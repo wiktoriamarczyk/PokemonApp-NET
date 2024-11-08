@@ -27,21 +27,36 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Row 0: Background -->
+        <!-- Background -->
         <Image Source="./Images/background.png" Stretch="UniformToFill" Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="-1">
             <Image.Effect>
                 <BlurEffect Radius="40"/>
             </Image.Effect>
         </Image>
 
-        <!-- Logo -->
+        <!-- Row 0: Log out button -->
+        <Button x:Name="LogoutButton" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="25"
+                BorderThickness="2" BorderBrush="Transparent" Background="CornflowerBlue" Click="LogoutButton_Click" Foreground="White">
+            <Button.Content>
+                <TextBlock Text="Logout" TextAlignment="Center" FontSize="15" FontWeight="Bold" Margin="10"/>
+            </Button.Content>
+            <Button.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
+            </Button.Effect>
+        </Button>
+
+        <!-- Row 0: Logo -->
         <Image Source="./Images/pokemon-logo.png" Grid.Row="0" HorizontalAlignment="Center"/>
 
-        <!-- Search bar -->
+        <!-- Row 0: Search bar -->
         <TextBox Name="SearchTextBox" Grid.Row="0" Width="200" Height="30" Margin="30" TextChanged="SearchTextBox_TextChanged"
-                 VerticalAlignment="Center" HorizontalAlignment="Right" Background="{StaticResource watermark}"
-                 BorderBrush="DarkSlateGray" BorderThickness="2" FontSize="17"
-                 TextWrapping="Wrap" TextAlignment="Left" VerticalContentAlignment="Center" FontStyle="Italic"/>
+                 VerticalAlignment="Center" HorizontalAlignment="Left" Background="{StaticResource watermark}"
+                 BorderBrush="CornflowerBlue" BorderThickness="2" FontSize="17"
+                 TextWrapping="Wrap" TextAlignment="Left" VerticalContentAlignment="Center">
+            <TextBox.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
+            </TextBox.Effect>
+        </TextBox>
 
         <!-- Row 1: Pokemon grid -->
         <UniformGrid Grid.Row="1" Columns="3" Rows="3" Name="PokemonGridDisplay" Margin="20">
@@ -52,12 +67,29 @@
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <!-- column for left -->
+                <!-- Column for left button -->
                 <ColumnDefinition Width="*"/>
-                <!-- Empty place -->
+                <!-- Column for pokeball button -->
                 <ColumnDefinition Width="Auto"/>
                 <!-- Column for right button -->
             </Grid.ColumnDefinitions>
+
+            <!-- Grid styles -->
+            <Grid.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Opacity" Value="0.25"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Resources>
 
             <!-- Previous page button -->
             <Button x:Name="PreviousPageButton" Grid.Column="0" Width="50" Height="50" HorizontalAlignment="Left" Margin="30 0,0,50"
@@ -67,13 +99,22 @@
                 </Button.Content>
             </Button>
 
+            <!-- Pokeball list button -->
+            <Button x:Name="PokeballListButton" Grid.Column="1" Width="80" Height="80" HorizontalAlignment="Center" Margin="0,-35,0,30"
+                    BorderThickness="0" Background="Transparent" Click="PokeballListButton_Click">
+                <Button.Content>
+                    <Image Source="./Images/pokeball.png" Stretch="Uniform"/>
+                </Button.Content>
+            </Button>
+
             <!-- Next page button -->
-            <Button Grid.Column="2"  Width="50" Height="50" HorizontalAlignment="Right" Margin="0,0,30,50"
+            <Button x:Name="NextPageButton" Grid.Column="2" Width="50" Height="50" HorizontalAlignment="Right" Margin="0,0,30,50"
                     BorderThickness="0" Background="Transparent" Click="ButtonNextPage_Click">
                 <Button.Content>
                     <Image Source="./Images/arrow-right.png" Stretch="Uniform"/>
                 </Button.Content>
             </Button>
+
         </Grid>
 
     </Grid>
