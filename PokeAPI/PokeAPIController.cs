@@ -24,7 +24,6 @@ namespace PokeAPI
         CancellationToken cancelToken;
 
         int maxPokemonCount;
-        const string language = "en";
 
         public PokeAPIController()
         {
@@ -66,13 +65,6 @@ namespace PokeAPI
                     {
                         Trace.WriteLine($"Fetching pokemons {startIndex}-{endIndex}");
                         List<Pokemon> pokemonsBatch = await PokeAPIController.Instance.GetPokemons(startIndex, endIndex);
-                        if (pokemonsBatch != null && pokemonsBatch.Any())
-                        {
-                            foreach (var pokemon in pokemonsBatch)
-                            {
-                               // Trace.WriteLine($"Pokemon [{pokemon.Id}]: {pokemon.Name}");
-                            }
-                        }
 
                         page++;
                         startIndex = (page - 1) * maxPokemonsInGrid + 1;
@@ -131,6 +123,24 @@ namespace PokeAPI
             return pokemon;
         }
 
+        public async Task<List<Pokemon>> FindPokemonsByName(string name)
+        {
+            List<Pokemon> foundPokemons = pokemons.Where(p => p.Name.ToLower().Contains(name.ToLower())).ToList();
+            Pokemon pokemon = await GetPokemon(name);
+
+            if (foundPokemons == null || foundPokemons.Count == 0)
+            {
+                foundPokemons = new List<Pokemon>();
+            }
+
+            if (pokemon != null)
+            {
+                foundPokemons.Add(pokemon);
+            }
+
+            return foundPokemons;
+        }
+
         public async Task<Pokemon> GetPokemon(string name)
         {
             Pokemon pokemon = pokemons.FirstOrDefault(p => p.Name == name);
@@ -150,7 +160,7 @@ namespace PokeAPI
         {
             string result = string.Empty;
             Ability ability = await pokeApiNet.GetResourceAsync<Ability>(abilityName);
-            return ability?.EffectEntries.FirstOrDefault(e => e.Language.Name == language)?.Effect ?? string.Empty;
+            return ability?.EffectEntries.FirstOrDefault(e => e.Language.Name == Common.language)?.Effect ?? string.Empty;
         }
 
         public EvolutionChainCompactData? GetPokemonEvolutionChain(int evolutionId)

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using PokeApiNet;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -131,8 +132,7 @@ namespace PokeAPI
             statisticPanel.Init(pokemonData);
         }
 
-        // TO FIX
-        void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        async void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is TextBox box)
             {
@@ -150,10 +150,11 @@ namespace PokeAPI
                 return;
             }
 
-            var filteredData = pokemonGridBuilder.pokemonsData.FindAll(p => p.pokemonBaseData.name.ToLower().Contains(searchText));
+            List<Pokemon> filteredData = await pokeAPIController.FindPokemonsByName(searchText);
             PokemonGridDisplay.Children.Clear();
-            foreach (var pokemonData in filteredData)
+            foreach (var pokemon in filteredData)
             {
+                PokemonCompactData pokemonData = await pokemonGridBuilder.InitPokemonBaseData(pokemon);
                 var pokemonElement = CreatePokemonElement(pokemonData);
                 PokemonGridDisplay.Children.Add(pokemonElement);
             }

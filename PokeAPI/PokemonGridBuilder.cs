@@ -38,7 +38,7 @@ namespace PokeAPI
         }
 
         // Initialize basic information about pokemon displayed in the grid of the main panel
-        private async Task<PokemonCompactData> InitPokemonBaseData(Pokemon pokemon)
+        public async Task<PokemonCompactData> InitPokemonBaseData(Pokemon pokemon)
         {
             string spriteURL = pokemon.Sprites.Other.OfficialArtwork.FrontDefault;
             PokemonCompactData pokemonData = new PokemonCompactData();

@@ -216,7 +216,10 @@ namespace PokeApiNet
             if (resource == null)
             {
                 resource = await GetResourcesWithParamsAsync<T>(sanitizedName, cancellationToken);
-                _resourceCache.Store(resource);
+                if (resource != null)
+                {
+                    _resourceCache.Store(resource);
+                }
             }
 
             return resource;
@@ -465,7 +468,15 @@ namespace PokeApiNet
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             using var response = await _client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken);
 
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return default;
+                }
+
+                response.EnsureSuccessStatusCode();
+            }
             return DeserializeStream<T>(await response.Content.ReadAsStreamAsync());
         }
 
