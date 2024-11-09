@@ -24,6 +24,7 @@ namespace PokeAPI
         public LoginPanel()
         {
             InitializeComponent();
+            PokeAPIController pokeAPIController = PokeAPIController.Instance;
         }
 
         void TogglePanel_Click(object sender, RoutedEventArgs e)

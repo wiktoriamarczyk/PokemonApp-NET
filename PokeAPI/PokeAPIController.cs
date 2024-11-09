@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using PokeApiNet;
 
 
@@ -28,6 +30,7 @@ namespace PokeAPI
         {
             cancellationTokenSource = new CancellationTokenSource();
             cancelToken = cancellationTokenSource.Token;
+            FetchPokemonsOnAnotherThread(1);
         }
 
         ~PokeAPIController()
@@ -41,10 +44,55 @@ namespace PokeAPI
             cancellationTokenSource.Dispose();
         }
 
-        async Task<int> GetPokemonCount()
+        // Fetch Common.maxPagesToFetchOnOneRequest * Common.maxPokemonsInGrid pokemons starting from the given page
+        // with batches of 9 pokemons each
+        public async Task FetchPokemonsOnAnotherThread(int page)
         {
-            var data = await pokeApiNet.GetNamedResourcePageAsync<Pokemon>(1, 0, cancellationTokenSource.Token);
-            return data.Count;
+            maxPokemonCount = await GetPokemonCount();
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    const int maxPokemonsInGrid = Common.maxPokemonsInGrid;
+                    const int maxPokemonsToFetch = maxPokemonsInGrid * Common.maxPagesToFetchOnOneRequest;
+
+                    int startIndex = (page - 1) * maxPokemonsInGrid + 1;
+                    int endIndex = Math.Min(startIndex + maxPokemonsInGrid, maxPokemonCount);
+
+                    int pokemonsLeft = Math.Min(maxPokemonsToFetch, endIndex - startIndex);
+
+                    while (pokemonsLeft > 0)
+                    {
+                        Trace.WriteLine($"Fetching pokemons {startIndex}-{endIndex}");
+                        List<Pokemon> pokemonsBatch = await PokeAPIController.Instance.GetPokemons(startIndex, endIndex);
+                        if (pokemonsBatch != null && pokemonsBatch.Any())
+                        {
+                            foreach (var pokemon in pokemonsBatch)
+                            {
+                               // Trace.WriteLine($"Pokemon [{pokemon.Id}]: {pokemon.Name}");
+                            }
+                        }
+
+                        page++;
+                        startIndex = (page - 1) * maxPokemonsInGrid + 1;
+                        endIndex = Math.Min(startIndex + maxPokemonsInGrid, maxPokemonCount);
+                        pokemonsLeft--;
+
+                        if (cancelToken.IsCancellationRequested)
+                        {
+                            Trace.WriteLine("Task was cancelled.");
+                            break;
+                        }
+                    }
+
+                    Trace.WriteLine("All pokemons fetched.");
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"An error occurred while fetching pokemons: {ex.Message}");
+                }
+            });
         }
 
         public async Task<List<Pokemon>> GetPokemons(int startIndex, int endIndex)
@@ -173,6 +221,12 @@ namespace PokeAPI
             evolutionChains.Add(evolutionChainData);
 
             return evolutionChainData;
+        }
+
+        async Task<int> GetPokemonCount()
+        {
+            var data = await pokeApiNet.GetNamedResourcePageAsync<Pokemon>(1, 0, cancellationTokenSource.Token);
+            return data.Count;
         }
 
         async Task<bool> ValidateRange(int startIndex, int endIndex)

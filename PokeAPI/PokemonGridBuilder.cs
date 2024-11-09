@@ -17,7 +17,7 @@ namespace PokeAPI
 
         List<PokemonCompactData> _pokemonsData = new List<PokemonCompactData>();
 
-        const int maxElementsInGrid = 9;
+        const int maxElementsInGrid = Common.maxPokemonsInGrid;
 
         public async Task<List<PokemonCompactData>> CreatePokemonsGrid(int page)
         {

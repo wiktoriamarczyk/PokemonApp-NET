@@ -31,11 +31,20 @@ namespace PokeAPI
             get => _currentPage;
             set
             {
-                if (value > 0)
+                if (value <= 0)
                 {
-                    _currentPage = value;
-                    UpdateButtonVisibilityBasedOnPage();
+                    return;
                 }
+
+                _currentPage = value;
+                UpdateButtonVisibilityBasedOnPage();
+
+                // Fetch next batch of pokemons if the user is close to the end of the current batch
+                if (value % (Common.maxPagesToFetchOnOneRequest / 2) == 0)
+                {
+                    pokeAPIController.FetchPokemonsOnAnotherThread(value);
+                }
+
             }
         }
 
@@ -114,6 +123,7 @@ namespace PokeAPI
 
         async void OnPokemonElementClick(PokemonCompactData pokemonData)
         {
+            SetButtonsEnableState(false);
             StatisticPanel statisticPanel = new StatisticPanel();
             pokemonData = await pokemonGridBuilder.InitPokemonExtendedData(pokemonData);
             statisticPanel.Show();
