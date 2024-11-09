@@ -26,6 +26,8 @@ namespace PokeAPI
         const string searchBoxWatermarkName = "watermark";
         const int minPage = 1;
 
+        const int gridElementDimension = 200;
+
         static int _currentPage = minPage;
         int currentPage
         {
@@ -38,7 +40,7 @@ namespace PokeAPI
                 }
 
                 _currentPage = value;
-                UpdateButtonVisibilityBasedOnPage();
+                UpdatePrevPageButtonVisibility();
 
                 // Fetch next batch of pokemons if the user is close to the end of the current batch
                 if (value % (Common.maxPagesToFetchOnOneRequest / 2) == 0)
@@ -53,7 +55,7 @@ namespace PokeAPI
         {
             InitializeComponent();
             pokemonGridBuilder = new PokemonGridBuilder();
-            UpdateButtonVisibilityBasedOnPage();
+            UpdatePrevPageButtonVisibility();
             LoadPokemonGrid();
         }
 
@@ -78,8 +80,8 @@ namespace PokeAPI
             var image = new Image
             {
                 Source = new BitmapImage(new Uri(pokemonData.pokemonBaseData.spriteURL)),
-                Width = 200,
-                Height = 200,
+                Width = gridElementDimension,
+                Height = gridElementDimension,
                 Margin = new Thickness(2)
             };
 
@@ -132,6 +134,8 @@ namespace PokeAPI
             statisticPanel.Init(pokemonData);
         }
 
+        // TO DO - implement searching through ALL pokemons, not only the ones that are currently loaded
+        // endpoint with pokemons names?
         async void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is TextBox box)
@@ -143,29 +147,53 @@ namespace PokeAPI
             }
 
             string searchText = SearchTextBox.Text.ToLower();
-
             if (string.IsNullOrEmpty(searchText))
             {
                 LoadPokemonGrid();
+                SetPageButtonsVisibilityState(true);
+                PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+                PokemonGridInfo.Visibility = Visibility.Hidden;
                 return;
             }
 
-            List<Pokemon> filteredData = await pokeAPIController.FindPokemonsByName(searchText);
             PokemonGridDisplay.Children.Clear();
+            SetPageButtonsVisibilityState(false);
+            PokemonGridInfo.Visibility = Visibility.Visible;
+            PokemonGridInfo.Text = "Searching...";
+
+            List<Pokemon> filteredData = await pokeAPIController.FindPokemonsByName(searchText);
+            if (filteredData == null || filteredData.Count == 0)
+            {
+                PokemonGridInfo.Text = "No pokemons found :(";
+                return;
+            }
+
+            PokemonGridInfo.Visibility = Visibility.Hidden;
+
             foreach (var pokemon in filteredData)
             {
                 PokemonCompactData pokemonData = await pokemonGridBuilder.InitPokemonBaseData(pokemon);
                 var pokemonElement = CreatePokemonElement(pokemonData);
                 PokemonGridDisplay.Children.Add(pokemonElement);
             }
+
+            PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            //PokemonGridDisplay.Height = gridElementDimension * filteredData.Count;
+            PokemonGridScrollViewer.UpdateLayout();
         }
 
-        void UpdateButtonVisibilityBasedOnPage()
+        void UpdatePrevPageButtonVisibility()
         {
             if (currentPage == minPage)
                 PreviousPageButton.Visibility = Visibility.Hidden;
             else if (PreviousPageButton.Visibility == Visibility.Hidden)
                 PreviousPageButton.Visibility = Visibility.Visible;
+        }
+
+        void SetPageButtonsVisibilityState(bool isVisible)
+        {
+            PreviousPageButton.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+            NextPageButton.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
         }
 
         void SetButtonsEnableState(bool isEnabled)

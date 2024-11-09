@@ -34,6 +34,19 @@
             </Image.Effect>
         </Image>
 
+        <!-- Row 0: Search bar -->
+        <TextBox Name="SearchTextBox" Grid.Row="0" Width="200" Height="30" Margin="30" TextChanged="SearchTextBox_TextChanged"
+                 VerticalAlignment="Center" HorizontalAlignment="Left" Background="{StaticResource watermark}"
+                 BorderBrush="CornflowerBlue" BorderThickness="2" FontSize="17"
+                 TextWrapping="Wrap" TextAlignment="Left" VerticalContentAlignment="Center">
+            <TextBox.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
+            </TextBox.Effect>
+        </TextBox>
+
+        <!-- Row 0: Logo -->
+        <Image Source="./Images/pokemon-logo.png" Grid.Row="0" HorizontalAlignment="Center"/>
+
         <!-- Row 0: Log out button -->
         <Button x:Name="LogoutButton" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="25"
                 BorderThickness="2" BorderBrush="Transparent" Background="CornflowerBlue" Click="LogoutButton_Click" Foreground="White">
@@ -45,23 +58,16 @@
             </Button.Effect>
         </Button>
 
-        <!-- Row 0: Logo -->
-        <Image Source="./Images/pokemon-logo.png" Grid.Row="0" HorizontalAlignment="Center"/>
-
-        <!-- Row 0: Search bar -->
-        <TextBox Name="SearchTextBox" Grid.Row="0" Width="200" Height="30" Margin="30" TextChanged="SearchTextBox_TextChanged"
-                 VerticalAlignment="Center" HorizontalAlignment="Left" Background="{StaticResource watermark}"
-                 BorderBrush="CornflowerBlue" BorderThickness="2" FontSize="17"
-                 TextWrapping="Wrap" TextAlignment="Left" VerticalContentAlignment="Center">
-            <TextBox.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
-            </TextBox.Effect>
-        </TextBox>
-
         <!-- Row 1: Pokemon grid -->
-        <UniformGrid Grid.Row="1" Columns="3" Rows="3" Name="PokemonGridDisplay" Margin="20">
-            <!-- Added dynamically from code -->
-        </UniformGrid>
+        <ScrollViewer x:Name="PokemonGridScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
+            <UniformGrid Grid.Row="1" Columns="3" Rows="3" x:Name="PokemonGridDisplay" Margin="20">
+                <!-- Added dynamically from code -->
+            </UniformGrid>
+        </ScrollViewer>
+
+        <TextBlock x:Name="PokemonGridInfo" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                   FontSize="40" FontWeight="Bold" Foreground="#2b2c2e" Visibility="Hidden">
+        </TextBlock>
 
         <!-- Row 2: Buttons -->
         <Grid Grid.Row="2">
