@@ -17,6 +17,7 @@ namespace PokeAPI
         static PokeAPIController _instance;
 
         HashSet<Pokemon> pokemons { get; set; } = new HashSet<Pokemon>();
+        HashSet<string> pokemonNames { get; set; } = new HashSet<string>();
         List<EvolutionChainCompactData> evolutionChains { get; set; } = new List<EvolutionChainCompactData>();
 
         PokeApiClient pokeApiNet = new PokeApiClient();
@@ -29,21 +30,21 @@ namespace PokeAPI
         {
             cancellationTokenSource = new CancellationTokenSource();
             cancelToken = cancellationTokenSource.Token;
-            FetchPokemonsOnAnotherThread(1);
+            FetchPokemonsOnAnotherThread(Common.minPage);
+        }
+
+        async public Task Initialize()
+        {
+            await FetchAllPokemonNames();
         }
 
         ~PokeAPIController()
-        {
-            CancelTasks();
-        }
-
-        public void CancelTasks()
         {
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
         }
 
-        // Fetch Common.maxPagesToFetchOnOneRequest * Common.maxPokemonsInGrid pokemons starting from the given page
+        // Fetch maxPagesToFetchOnOneRequest * maxPokemonsInGrid pokemons starting from the given page
         // with batches of 9 pokemons each
         public async Task FetchPokemonsOnAnotherThread(int page)
         {
@@ -64,7 +65,7 @@ namespace PokeAPI
                     while (pokemonsLeft > 0)
                     {
                         Trace.WriteLine($"Fetching pokemons {startIndex}-{endIndex}");
-                        List<Pokemon> pokemonsBatch = await PokeAPIController.Instance.GetPokemons(startIndex, endIndex);
+                        List<Pokemon> pokemonsBatch = await GetPokemons(startIndex, endIndex);
 
                         page++;
                         startIndex = (page - 1) * maxPokemonsInGrid + 1;
@@ -87,7 +88,54 @@ namespace PokeAPI
             });
         }
 
-        public async Task<List<Pokemon>> GetPokemons(int startIndex, int endIndex)
+        public async Task<List<Pokemon>?> FindPokemonsStartingWith(string name)
+        {
+            // Check if the task was cancelled
+            cancelToken.ThrowIfCancellationRequested();
+
+            List<string> foundNames = new List<string>();
+            foundNames = pokemonNames.Where(n => n.ToLower().StartsWith(name.ToLower())).ToList();
+            Trace.WriteLine($"---Found {foundNames.Count} pokemons starting with {name}");
+
+            if (foundNames.Count == 0)
+            {
+                return null;
+            }
+
+            List<Pokemon> foundPokemons = new List<Pokemon>();
+            foundPokemons = pokemons.Where(p => foundNames.Contains(p.Name)).ToList();
+            Trace.WriteLine($"---Found {foundPokemons.Count} pokemons in the cache");
+
+            if (foundNames.Count == foundPokemons.Count)
+            {
+                return foundPokemons;
+            }
+
+            cancelToken.ThrowIfCancellationRequested();
+
+            List<Pokemon> pokemonsToFetch = new List<Pokemon>();
+            foreach (string pokemonName in foundNames)
+            {
+                if (foundPokemons.Any(p => p.Name == pokemonName))
+                {
+                    continue;
+                }
+
+                cancelToken.ThrowIfCancellationRequested();
+
+                Trace.WriteLine($"---Fetching {pokemonName}");
+                var pokemon = await GetPokemon(pokemonName);
+                if (pokemon != null)
+                {
+                    pokemonsToFetch.Add(pokemon);
+                }
+            }
+            foundPokemons.AddRange(pokemonsToFetch);
+
+            return foundPokemons;
+        }
+
+        public async Task<List<Pokemon>?> GetPokemons(int startIndex, int endIndex)
         {
             bool isRangeValid = await ValidateRange(startIndex, endIndex);
             if (!isRangeValid)
@@ -95,20 +143,20 @@ namespace PokeAPI
                 return null;
             }
 
-            List<Pokemon> pokemons = new List<Pokemon>();
+            List<Pokemon> pokemonList = new List<Pokemon>();
             for (int id = startIndex; id < endIndex; ++id)
             {
                 Pokemon pokemon = await GetPokemon(id);
                 if (pokemon != null)
                 {
-                    pokemons.Add(pokemon);
+                    pokemonList.Add(pokemon);
                     Console.WriteLine($"Pokemon [{pokemon.Id}]: {pokemon.Name}");
                 }
             }
-            return pokemons;
+            return pokemonList;
         }
 
-        public async Task<Pokemon> GetPokemon(int id)
+        public async Task<Pokemon?> GetPokemon(int id)
         {
             Pokemon pokemon = pokemons.FirstOrDefault(p => p.Id == id);
             if (pokemon != null)
@@ -123,25 +171,7 @@ namespace PokeAPI
             return pokemon;
         }
 
-        public async Task<List<Pokemon>> FindPokemonsByName(string name)
-        {
-            List<Pokemon> foundPokemons = pokemons.Where(p => p.Name.ToLower().Contains(name.ToLower())).ToList();
-            Pokemon pokemon = await GetPokemon(name);
-
-            if (foundPokemons == null || foundPokemons.Count == 0)
-            {
-                foundPokemons = new List<Pokemon>();
-            }
-
-            if (pokemon != null)
-            {
-                foundPokemons.Add(pokemon);
-            }
-
-            return foundPokemons;
-        }
-
-        public async Task<Pokemon> GetPokemon(string name)
+        public async Task<Pokemon?> GetPokemon(string name)
         {
             Pokemon pokemon = pokemons.FirstOrDefault(p => p.Name == name);
             if (pokemon != null)
@@ -233,9 +263,16 @@ namespace PokeAPI
             return evolutionChainData;
         }
 
+        async Task FetchAllPokemonNames()
+        {
+            const int limit = 10000;
+            var data = await pokeApiNet.GetNamedResourcePageAsync<Pokemon>(limit, 0, cancelToken);
+            pokemonNames = data.Results.Select(p => p.Name).ToHashSet();
+        }
+
         async Task<int> GetPokemonCount()
         {
-            var data = await pokeApiNet.GetNamedResourcePageAsync<Pokemon>(1, 0, cancellationTokenSource.Token);
+            var data = await pokeApiNet.GetNamedResourcePageAsync<Pokemon>(1, 0, cancelToken);
             return data.Count;
         }
 

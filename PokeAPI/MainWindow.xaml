@@ -35,7 +35,7 @@
         </Image>
 
         <!-- Row 0: Search bar -->
-        <TextBox Name="SearchTextBox" Grid.Row="0" Width="200" Height="30" Margin="30" TextChanged="SearchTextBox_TextChanged"
+        <TextBox x:Name="SearchTextBox" Grid.Row="0" Width="200" Height="30" Margin="30" TextChanged="SearchTextBox_TextChanged"
                  VerticalAlignment="Center" HorizontalAlignment="Left" Background="{StaticResource watermark}"
                  BorderBrush="CornflowerBlue" BorderThickness="2" FontSize="17"
                  TextWrapping="Wrap" TextAlignment="Left" VerticalContentAlignment="Center">
@@ -43,6 +43,16 @@
                 <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
             </TextBox.Effect>
         </TextBox>
+
+        <Button x:Name="SearchButton" Height="35" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="235,0,0,0"
+                BorderThickness="2" BorderBrush="Transparent" Background="CornflowerBlue" Click="SearchButton_Click" Foreground="White">
+            <Button.Content>
+                <TextBlock Text="Search" TextAlignment="Center" FontSize="15" FontWeight="Bold" Margin="5"/>
+            </Button.Content>
+            <Button.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
+            </Button.Effect>
+        </Button>
 
         <!-- Row 0: Logo -->
         <Image Source="./Images/pokemon-logo.png" Grid.Row="0" HorizontalAlignment="Center"/>

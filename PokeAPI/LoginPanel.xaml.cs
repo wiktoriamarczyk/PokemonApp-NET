@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,8 @@ namespace PokeAPI
         public LoginPanel()
         {
             InitializeComponent();
+            currentPanel = LoginStackPanel;
+            // initialize PokeAPIController to fetch data in the background
             PokeAPIController pokeAPIController = PokeAPIController.Instance;
         }
 
@@ -68,8 +71,9 @@ namespace PokeAPI
             ShowMainPanel();
         }
 
-        void ShowMainPanel()
+        async void ShowMainPanel()
         {
+            await PokeAPIController.Instance.Initialize();
             MainWindow mainWindow = new MainWindow();
             this.Close();
             mainWindow.Show();

@@ -24,11 +24,10 @@ namespace PokeAPI
         PokeAPIController pokeAPIController = PokeAPIController.Instance;
 
         const string searchBoxWatermarkName = "watermark";
-        const int minPage = 1;
 
         const int gridElementDimension = 200;
 
-        static int _currentPage = minPage;
+        static int _currentPage = Common.minPage;
         int currentPage
         {
             get => _currentPage;
@@ -47,7 +46,6 @@ namespace PokeAPI
                 {
                     pokeAPIController.FetchPokemonsOnAnotherThread(value);
                 }
-
             }
         }
 
@@ -62,7 +60,7 @@ namespace PokeAPI
         async void LoadPokemonGrid()
         {
             PokemonGridDisplay.Children.Clear();
-            SetButtonsEnableState(false);
+            IsHitTestVisible = false;
 
             var pokemons = await pokemonGridBuilder.CreatePokemonsGrid(currentPage);
             foreach (var pokemon in pokemons)
@@ -71,8 +69,7 @@ namespace PokeAPI
 
                 PokemonGridDisplay.Children.Add(pokemonElement);
             }
-
-            SetButtonsEnableState(true);
+            IsHitTestVisible = true;
         }
 
         Button CreatePokemonElement(PokemonCompactData pokemonData)
@@ -126,7 +123,7 @@ namespace PokeAPI
 
         async void OnPokemonElementClick(PokemonCompactData pokemonData)
         {
-            SetButtonsEnableState(false);
+            IsHitTestVisible = false;
             StatisticPanel statisticPanel = new StatisticPanel();
             pokemonData = await pokemonGridBuilder.InitPokemonExtendedData(pokemonData);
             statisticPanel.Show();
@@ -134,9 +131,7 @@ namespace PokeAPI
             statisticPanel.Init(pokemonData);
         }
 
-        // TO DO - implement searching through ALL pokemons, not only the ones that are currently loaded
-        // endpoint with pokemons names?
-        async void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is TextBox box)
             {
@@ -146,22 +141,42 @@ namespace PokeAPI
                     box.Background = Brushes.White;
             }
 
-            string searchText = SearchTextBox.Text.ToLower();
-            if (string.IsNullOrEmpty(searchText))
+            if (string.IsNullOrEmpty(SearchTextBox.Text))
             {
+                currentPage = Common.minPage;
                 LoadPokemonGrid();
                 SetPageButtonsVisibilityState(true);
                 PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
                 PokemonGridInfo.Visibility = Visibility.Hidden;
                 return;
             }
+        }
 
+        // TODO - display pokemons in batches
+        async void SearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            string searchText = SearchTextBox.Text.ToLower();
+
+            if (string.IsNullOrEmpty(searchText))
+                return;
+
+            IsHitTestVisible = false;
             PokemonGridDisplay.Children.Clear();
             SetPageButtonsVisibilityState(false);
             PokemonGridInfo.Visibility = Visibility.Visible;
             PokemonGridInfo.Text = "Searching...";
 
-            List<Pokemon> filteredData = await pokeAPIController.FindPokemonsByName(searchText);
+            List<Pokemon> filteredData = new List<Pokemon>();
+
+            try
+            {
+                filteredData = await pokeAPIController.FindPokemonsStartingWith(searchText);
+            }
+            catch (OperationCanceledException)
+            {
+                Trace.WriteLine("Search operation was cancelled");
+            }
+
             if (filteredData == null || filteredData.Count == 0)
             {
                 PokemonGridInfo.Text = "No pokemons found :(";
@@ -178,13 +193,13 @@ namespace PokeAPI
             }
 
             PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-            //PokemonGridDisplay.Height = gridElementDimension * filteredData.Count;
             PokemonGridScrollViewer.UpdateLayout();
+            IsHitTestVisible = true;
         }
 
         void UpdatePrevPageButtonVisibility()
         {
-            if (currentPage == minPage)
+            if (currentPage == Common.minPage)
                 PreviousPageButton.Visibility = Visibility.Hidden;
             else if (PreviousPageButton.Visibility == Visibility.Hidden)
                 PreviousPageButton.Visibility = Visibility.Visible;
@@ -194,14 +209,6 @@ namespace PokeAPI
         {
             PreviousPageButton.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
             NextPageButton.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
-        }
-
-        void SetButtonsEnableState(bool isEnabled)
-        {
-            PreviousPageButton.IsEnabled = isEnabled ? true : false;
-            NextPageButton.IsEnabled = isEnabled ? true : false;
-            PokeballListButton.IsEnabled = isEnabled ? true : false;
-            LogoutButton.IsEnabled = isEnabled ? true : false;
         }
 
         void ButtonPreviousPage_Click(object sender, RoutedEventArgs e)
@@ -218,7 +225,7 @@ namespace PokeAPI
 
         void PokeballListButton_Click(object sender, RoutedEventArgs e)
         {
-
+            // display pokemons added to fav list
         }
 
         void LogoutButton_Click(object sender, RoutedEventArgs e)

@@ -10,6 +10,7 @@ namespace PokeAPI
     {
         public const int maxPokemonsInGrid = 9;
         public const int maxPagesToFetchOnOneRequest = 10;
+        public const int minPage = 1;
         public const string language = "en";
     }
 }
