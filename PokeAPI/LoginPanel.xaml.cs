@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using PokeAPI.Data;
 
 namespace PokeAPI
 {
@@ -20,14 +9,27 @@ namespace PokeAPI
     /// </summary>
     public partial class LoginPanel : Window
     {
+        PokeContext context;
         StackPanel currentPanel;
 
-        public LoginPanel()
+        // Error messages
+        const string userNameAlreadyExistsMessage = "Username already exists!";
+        const string loginErrorMessage = "Invalid username or password!";
+        const string passwordsDoNotMatchMessage = "Passwords do not match!";
+
+        // Buttons text
+        const string loginButtonText = "Back to Login";
+        const string registerButtonText = "Register";
+
+        public LoginPanel(PokeContext context)
         {
             InitializeComponent();
+            this.context = context;
+            // Start with the login panel
             currentPanel = LoginStackPanel;
-            // initialize PokeAPIController to fetch data in the background
+            // Initialize PokeAPIController to fetch data in the background
             PokeAPIController pokeAPIController = PokeAPIController.Instance;
+
         }
 
         void TogglePanel_Click(object sender, RoutedEventArgs e)
@@ -37,44 +39,100 @@ namespace PokeAPI
                 LoginStackPanel.Visibility = Visibility.Collapsed;
                 RegisterStackPanel.Visibility = Visibility.Visible;
                 currentPanel = RegisterStackPanel;
-                TogglePanelButton.Text = "Back to Login";
+                TogglePanelButton.Text = loginButtonText;
             }
             else
             {
                 LoginStackPanel.Visibility = Visibility.Visible;
                 RegisterStackPanel.Visibility = Visibility.Collapsed;
                 currentPanel = LoginStackPanel;
-                TogglePanelButton.Text = "Register";
+                TogglePanelButton.Text = registerButtonText;
             }
         }
 
         void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            string email = EmailTextBox.Text;
+            LoginErrorBlock.Visibility = Visibility.Collapsed;
+
+            string userName = UserNameBox.Text;
             string password = PasswordBox.Password;
 
+            // Find user in the database
+            User user = context.Users.FirstOrDefault(u => u.Username == userName);
+
+            // If user does not exist, show an error message
+            if (user == null)
+            {
+                LoginErrorBlock.Text = loginErrorMessage;
+                LoginErrorBlock.Visibility = Visibility.Visible;
+                return;
+            }
+
+            // Retrieve the salt and hashed password
+            byte[] storedSaltBytes = Convert.FromBase64String(user.Salt);
+            // Hash the entered password with the stored salt
+            string enteredPasswordHash = Common.HashPassword(password, storedSaltBytes);
+
+            if (enteredPasswordHash != user.Password)
+            {
+                LoginErrorBlock.Text = loginErrorMessage;
+                LoginErrorBlock.Visibility = Visibility.Visible;
+                return;
+            }
+
+            context.loggedInUser = user;
             ShowMainPanel();
         }
 
-        void RegisterButton_Click(object sender, RoutedEventArgs e)
+        async void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
-            string email = RegisterEmailBox.Text;
+            RegisterErrorBlock.Visibility = Visibility.Collapsed;
+
+            string userName = RegisterUserNameBox.Text;
             string password = RegisterPasswordBox.Password;
             string confirmPassword = RegisterConfirmPasswordBox.Password;
 
             if (password != confirmPassword)
             {
-                MessageBox.Show("Passwords do not match!");
+                RegisterErrorBlock.Text = passwordsDoNotMatchMessage;
+                RegisterErrorBlock.Visibility = Visibility.Visible;
                 return;
             }
 
+            // Hash the password with the salt
+            byte[] saltBytes = Common.GenerateSalt();
+            string hashedPassword = Common.HashPassword(password, saltBytes);
+            string base64Salt = Convert.ToBase64String(saltBytes);
+
+            // Create user
+            User user = new User
+            {
+                Username = userName,
+                Password = hashedPassword,
+                Salt = base64Salt
+            };
+
+            // Find user in the database
+            User existingUser = context.Users.FirstOrDefault(u => u.Username == userName);
+            // If user already exists, show an error message
+            if (existingUser != null)
+            {
+                RegisterErrorBlock.Text = userNameAlreadyExistsMessage;
+                RegisterErrorBlock.Visibility = Visibility.Visible;
+                return;
+            }
+
+            await context.Users.AddAsync(user);
+            await context.SaveChangesAsync();
+
+            context.loggedInUser = user;
             ShowMainPanel();
         }
 
         async void ShowMainPanel()
         {
             await PokeAPIController.Instance.Initialize();
-            MainWindow mainWindow = new MainWindow();
+            MainWindow mainWindow = new MainWindow(context);
             this.Close();
             mainWindow.Show();
         }

@@ -117,7 +117,7 @@
 
             <!-- Pokeball list button -->
             <Button x:Name="PokeballListButton" Grid.Column="1" Width="80" Height="80" HorizontalAlignment="Center" Margin="0,-35,0,30"
-                    BorderThickness="0" Background="Transparent" Click="PokeballListButton_Click">
+                    BorderThickness="0" Background="Transparent" Click="FavPokemonList_Click">
                 <Button.Content>
                     <Image Source="./Images/pokeball.png" Stretch="Uniform"/>
                 </Button.Content>

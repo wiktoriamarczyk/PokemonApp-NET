@@ -1,17 +1,10 @@
 ﻿using PokeApiNet;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
 
 namespace PokeAPI
 {
@@ -23,9 +16,7 @@ namespace PokeAPI
         PokemonGridBuilder pokemonGridBuilder;
         PokeAPIController pokeAPIController = PokeAPIController.Instance;
 
-        const string searchBoxWatermarkName = "watermark";
-
-        const int gridElementDimension = 200;
+        readonly PokeContext context;
 
         static int _currentPage = Common.minPage;
         int currentPage
@@ -49,9 +40,18 @@ namespace PokeAPI
             }
         }
 
-        public MainWindow()
+        bool favListOpened = false;
+
+        const string searchBoxWatermarkName = "watermark";
+        const string noPokemonsFoundMessage = "No pokemons found :(";
+        const string searchingMessage = "Searching...";
+        const string noFavPokemonsMessage = "You don't have any favorite pokemons yet!";
+        const int gridElementDimension = 200;
+
+        public MainWindow(PokeContext context)
         {
             InitializeComponent();
+            this.context = context;
             pokemonGridBuilder = new PokemonGridBuilder();
             UpdatePrevPageButtonVisibility();
             LoadPokemonGrid();
@@ -72,6 +72,7 @@ namespace PokeAPI
             IsHitTestVisible = true;
         }
 
+        // Create pokemon element based on data fetched from the API and converted to compact data
         Button CreatePokemonElement(PokemonCompactData pokemonData)
         {
             var image = new Image
@@ -90,6 +91,13 @@ namespace PokeAPI
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 
+            var button = InitializePokemonElement(image, nameText);
+            button.Click += (s, e) => OnPokemonElementClick(pokemonData);
+            return button;
+        }
+
+        Button InitializePokemonElement(Image image, TextBlock nameText)
+        {
             var stackPanel = new StackPanel
             {
                 Orientation = Orientation.Vertical,
@@ -116,15 +124,54 @@ namespace PokeAPI
                 Background = new SolidColorBrush(Color.FromArgb(150, 255, 255, 255))
             };
 
-            button.Click += (s, e) => OnPokemonElementClick(pokemonData);
-
             return button;
         }
 
+        // Create pokemon element based on data stored in the db
+        Button CreatePokemonElement(Data.Pokemon pokemon)
+        {
+            var image = new Image
+            {
+                Source = new BitmapImage(new Uri(pokemon.ImageUrl)),
+                Width = gridElementDimension,
+                Height = gridElementDimension,
+                Margin = new Thickness(2)
+            };
+
+            var nameText = new TextBlock
+            {
+                Text = pokemon.Name,
+                FontWeight = FontWeights.Bold,
+                FontFamily = new FontFamily("Consolas"),
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            var button = InitializePokemonElement(image, nameText);
+            button.Click += (s, e) => OnPokemonElementClick(pokemon);
+            return button;
+        }
+
+        // Display detailed information about the pokemon based on the data stored in the db
+        async void OnPokemonElementClick(Data.Pokemon pokemon)
+        {
+            IsHitTestVisible = false;
+            StatisticPanel statisticPanel = new StatisticPanel(context);
+
+            Pokemon pokemonApiData = await pokeAPIController.GetPokemon(pokemon.PokeApiId);
+            PokemonCompactData pokemonData = new PokemonCompactData();
+            pokemonData.InitPokemonBaseData(pokemonApiData, pokemon.ImageUrl);
+            pokemonData = await pokemonGridBuilder.InitPokemonExtendedData(pokemonData);
+
+            statisticPanel.Show();
+            this.Close();
+            statisticPanel.Init(pokemonData);
+        }
+
+        // Display detailed information about the pokemon based on the data fetched from the API and converted to compact data
         async void OnPokemonElementClick(PokemonCompactData pokemonData)
         {
             IsHitTestVisible = false;
-            StatisticPanel statisticPanel = new StatisticPanel();
+            StatisticPanel statisticPanel = new StatisticPanel(context);
             pokemonData = await pokemonGridBuilder.InitPokemonExtendedData(pokemonData);
             statisticPanel.Show();
             this.Close();
@@ -160,11 +207,12 @@ namespace PokeAPI
             if (string.IsNullOrEmpty(searchText))
                 return;
 
+            // Disable user input while searching
             IsHitTestVisible = false;
             PokemonGridDisplay.Children.Clear();
             SetPageButtonsVisibilityState(false);
             PokemonGridInfo.Visibility = Visibility.Visible;
-            PokemonGridInfo.Text = "Searching...";
+            PokemonGridInfo.Text = searchingMessage;
 
             List<Pokemon> filteredData = new List<Pokemon>();
 
@@ -179,7 +227,9 @@ namespace PokeAPI
 
             if (filteredData == null || filteredData.Count == 0)
             {
-                PokemonGridInfo.Text = "No pokemons found :(";
+                PokemonGridInfo.Text = noPokemonsFoundMessage;
+                // Enable user input
+                IsHitTestVisible = true;
                 return;
             }
 
@@ -194,7 +244,63 @@ namespace PokeAPI
 
             PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             PokemonGridScrollViewer.UpdateLayout();
+            // Enable user input
             IsHitTestVisible = true;
+        }
+
+        async void FavPokemonList_Click(object sender, RoutedEventArgs e)
+        {
+            PokemonGridInfo.Visibility = Visibility.Hidden;
+            // Toggle between favorite pokemons and all pokemons
+            favListOpened = !favListOpened;
+            if (!favListOpened)
+            {
+                SearchButton.Visibility = Visibility.Visible;
+                SearchTextBox.Visibility = Visibility.Visible;
+
+                LoadPokemonGrid();
+                return;
+            }
+
+            PokemonGridDisplay.Children.Clear();
+            SearchButton.Visibility = Visibility.Hidden;
+            SearchTextBox.Visibility = Visibility.Hidden;
+            SetPageButtonsVisibilityState(false);
+
+            Data.User loggedInUser = context.loggedInUser;
+            List<Data.PokemonUser> pokemonUsers = context.PokemonsUsers.Where(pu => pu.UserId == loggedInUser.Id).ToList();
+
+            // If user has no favorite pokemons, display a message
+            if (pokemonUsers == null || pokemonUsers.Count == 0)
+            {
+                PokemonGridInfo.Visibility = Visibility.Visible;
+                PokemonGridInfo.Text = noFavPokemonsMessage;
+                return;
+            }
+
+            // Fetch favorite pokemons from the db
+            var pokemonsDB = context.Pokemons
+                .Where(p => context.PokemonsUsers.Any(pu => pu.PokemonId == p.Id && pu.UserId == loggedInUser.Id))
+                .ToList();
+
+            // Display favorite pokemons in the grid
+            foreach (var pokemonDB in pokemonsDB)
+            {
+                var pokemonElement = CreatePokemonElement(pokemonDB);
+                PokemonGridDisplay.Children.Add(pokemonElement);
+            }
+
+            //// Convert Data.Pokemon stored in the db to Pokemon from the API
+            //foreach (var pokemonDB in pokemonsDB)
+            //{
+            //    var pokemon = await pokeAPIController.GetPokemon(pokemonDB.PokeApiId);
+            //    PokemonCompactData pokemonData = await pokemonGridBuilder.InitPokemonBaseData(pokemon);
+            //    var pokemonElement = CreatePokemonElement(pokemonData);
+            //    PokemonGridDisplay.Children.Add(pokemonElement);
+            //}
+
+            PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            PokemonGridScrollViewer.UpdateLayout();
         }
 
         void UpdatePrevPageButtonVisibility()
@@ -223,14 +329,9 @@ namespace PokeAPI
             LoadPokemonGrid();
         }
 
-        void PokeballListButton_Click(object sender, RoutedEventArgs e)
-        {
-            // display pokemons added to fav list
-        }
-
         void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
-            LoginPanel loginPanel = new LoginPanel();
+            LoginPanel loginPanel = new LoginPanel(context);
             this.Close();
             loginPanel.Show();
         }

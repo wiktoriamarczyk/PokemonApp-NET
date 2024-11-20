@@ -18,6 +18,18 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Grid styles -->
+        <Grid.Resources>
+            <Style TargetType="Button">
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Resources>
+
+
         <!-- Background -->
         <Image Source="./Images/background.png" Stretch="UniformToFill" Grid.Row="0" Grid.RowSpan="4" Panel.ZIndex="-1">
             <Image.Effect>
@@ -33,8 +45,16 @@
             </Button.Content>
         </Button>
 
+        <!-- Add to fav list button -->
+        <Button x:Name="PokeballButton" Grid.Row="0" Width="80" Height="80" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,30"
+                    BorderThickness="0" Background="Transparent" Click="FavPokemonButton_Click">
+            <Button.Content>
+                <Image Source="./Images/pokeball.png" Stretch="Uniform"/>
+            </Button.Content>
+        </Button>
+
         <!-- Row 0: Evolution chain -->
-        <Grid x:Name="PokemonEvolutionChain" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="5,10,5,5">
+        <Grid x:Name="PokemonEvolutionChain" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="5,10,5,5">
             <Grid.RowDefinitions>
                 <!-- Row for pokemon pictures -->
                 <RowDefinition Height="Auto"/>

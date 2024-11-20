@@ -1,4 +1,6 @@
-﻿using PokeApiNet;
+﻿using Microsoft.EntityFrameworkCore;
+using PokeAPI.Data;
+using PokeApiNet;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,10 +27,14 @@ namespace PokeAPI
         PokeAPIController pokeAPIController = PokeAPIController.Instance;
         ObservableCollection<PokemonChainDisplay> pokemons;
 
+        PokeContext context;
+
         int pokemonId;
 
         const string heightUnit = "cm";
         const string weightUnit = "kg";
+        const string addToFavorites = "Catch pokemon in pokeball";
+        const string removeFromFavorites = "Release pokemon from pokeball";
 
         public class PokemonChainDisplay
         {
@@ -37,9 +43,11 @@ namespace PokeAPI
             public int Id;
         }
 
-        public StatisticPanel()
+        public StatisticPanel(PokeContext context)
         {
             InitializeComponent();
+            this.context = context;
+            pokemons = new ObservableCollection<PokemonChainDisplay>();
         }
 
         public async void Init(PokemonCompactData pokemonData)
@@ -65,6 +73,7 @@ namespace PokeAPI
             DisplayFormattedBasicData(pokemonData);
             DisplayStatistics(pokemonData);
             DisplayAbilities(pokemonData);
+            InitPokeballTooltip();
         }
 
         void DisplayAbilities(PokemonCompactData pokemonData)
@@ -255,9 +264,74 @@ namespace PokeAPI
             }
         }
 
+        void InitPokeballTooltip()
+        {
+            Data.User loggedInUser = context.loggedInUser;
+            var pokemonEntry = context.Pokemons.FirstOrDefault(p => p.PokeApiId == pokemonId);
+
+            if (pokemonEntry == null)
+            {
+                PokeballButton.ToolTip = addToFavorites;
+                return;
+            }
+
+            var pokemonUserEntry = context.PokemonsUsers.FirstOrDefault(pu => pu.PokemonId == pokemonEntry.Id && pu.UserId == loggedInUser.Id);
+
+            if (pokemonUserEntry == null)
+                PokeballButton.ToolTip = addToFavorites;
+            else
+                PokeballButton.ToolTip = removeFromFavorites;
+        }
+
+        async void FavPokemonButton_Click(object sender, RoutedEventArgs e)
+        {
+            Data.User loggedInUser = context.loggedInUser;
+
+            // Find pokemon by PokeApi id
+            var pokemonEntry = await context.Pokemons.FirstOrDefaultAsync(p => p.PokeApiId == pokemonId);
+            // If the pokemon is not in the database, add it
+            if (pokemonEntry == null)
+            {
+                var mainPokemonInChain = pokemons.FirstOrDefault(p => p.Id == pokemonId);
+                Data.Pokemon pokemonDB = new Data.Pokemon
+                {
+                    PokeApiId = pokemonId,
+                    Name = mainPokemonInChain.Name,
+                    ImageUrl = mainPokemonInChain.ImageUrl
+                };
+
+                await context.Pokemons.AddAsync(pokemonDB);
+                await context.SaveChangesAsync();
+
+                pokemonEntry = pokemonDB;
+            }
+
+            // Find pokemon in the user's fav list
+            var pokemonUserEntry = context.PokemonsUsers.FirstOrDefault(pu => pu.PokemonId == pokemonEntry.Id && pu.UserId == loggedInUser.Id);
+            // If the user does not have the pokemon in the fav list in database, add it
+            if (pokemonUserEntry == null)
+            {
+                Data.PokemonUser pokemonUser = new Data.PokemonUser
+                {
+                    PokemonId = pokemonEntry.Id,
+                    UserId = loggedInUser.Id
+                };
+
+                await context.PokemonsUsers.AddAsync(pokemonUser);
+            }
+            // If the user already has the pokemon in the fav list in database, remove it
+            else
+            {
+                context.PokemonsUsers.Remove(pokemonUserEntry);
+            }
+
+            await context.SaveChangesAsync();
+            InitPokeballTooltip();
+        }
+
         void ReturnToMainPanelButton_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow mainWindow = new MainWindow();
+            MainWindow mainWindow = new MainWindow(context);
             this.Close();
             mainWindow.Show();
         }

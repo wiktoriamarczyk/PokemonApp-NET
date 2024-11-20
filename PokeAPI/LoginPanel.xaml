@@ -49,10 +49,11 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                 <!--Email Row-->
+                 <!--User Name Row-->
                 <StackPanel Grid.Row="0" Orientation="Vertical" Margin="20,20,20,20">
-                    <TextBlock Text="Mail" FontWeight="Bold" FontSize="16" Margin="0,5,0,5"/>
-                    <TextBox x:Name="EmailTextBox" Grid.Row="1" FontSize="16" />
+                    <TextBlock x:Name="LoginErrorBlock" Text="Wrong user name or password!" FontWeight="Bold" FontSize="10" Margin="0,5,0,5" Foreground="DarkRed" Visibility="Collapsed"/>
+                    <TextBlock Text="User Name" FontWeight="Bold" FontSize="16" Margin="0,5,0,5"/>
+                    <TextBox x:Name="UserNameBox" Grid.Row="1" FontSize="16" />
                 </StackPanel>
 
                  <!--Password Row-->
@@ -85,10 +86,11 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Email Row -->
+                <!-- Name Row -->
                 <StackPanel Grid.Row="0" Orientation="Vertical" Margin="20,10,20,0">
-                    <TextBlock Text="Mail" FontWeight="Bold" FontSize="16" Margin="0,5,0,5"/>
-                    <TextBox x:Name="RegisterEmailBox" Grid.Row="1" FontSize="16" />
+                    <TextBlock x:Name="RegisterErrorBlock" Text="User name already taken!" FontWeight="Bold" FontSize="10" Margin="0,5,0,5" Foreground="DarkRed" Visibility="Collapsed"/>
+                    <TextBlock Text="User Name" FontWeight="Bold" FontSize="16" Margin="0,5,0,5"/>
+                    <TextBox x:Name="RegisterUserNameBox" Grid.Row="1" FontSize="16" />
                 </StackPanel>
 
                 <!-- Password Row -->
@@ -104,7 +106,7 @@
                 </StackPanel>
 
                 <!-- Register Button Row -->
-                <Button Grid.Row="3" Content="Register" Height="40" FontSize="16" FontWeight="Bold" BorderBrush="Transparent" Background="CornflowerBlue" Foreground="White" Margin="20" Click="RegisterButton_Click">
+                <Button Grid.Row="3" Content="Register" Height="35" FontSize="16" FontWeight="Bold" BorderBrush="Transparent" Background="CornflowerBlue" Foreground="White" Margin="20" Click="RegisterButton_Click">
                     <Button.Effect>
                         <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>
                     </Button.Effect>
