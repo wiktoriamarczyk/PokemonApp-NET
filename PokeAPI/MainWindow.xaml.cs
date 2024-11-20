@@ -249,6 +249,9 @@ namespace PokeAPI
 
         async void FavPokemonList_Click(object sender, RoutedEventArgs e)
         {
+            SetPageButtonsVisibilityState(true);
+            UpdatePrevPageButtonVisibility();
+
             PokemonGridInfo.Visibility = Visibility.Hidden;
             // Toggle between favorite pokemons and all pokemons
             favListOpened = !favListOpened;
