@@ -158,8 +158,7 @@ namespace PokeAPI
             StatisticPanel statisticPanel = new StatisticPanel(context);
 
             Pokemon pokemonApiData = await pokeAPIController.GetPokemon(pokemon.PokeApiId);
-            PokemonCompactData pokemonData = new PokemonCompactData();
-            pokemonData.InitPokemonBaseData(pokemonApiData, pokemon.ImageUrl);
+            PokemonCompactData pokemonData = await pokemonGridBuilder.InitPokemonBaseData(pokemonApiData);
             pokemonData = await pokemonGridBuilder.InitPokemonExtendedData(pokemonData);
 
             statisticPanel.Show();
