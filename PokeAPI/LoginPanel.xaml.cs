@@ -16,6 +16,7 @@ namespace PokeAPI
         const string userNameAlreadyExistsMessage = "Username already exists!";
         const string loginErrorMessage = "Invalid username or password!";
         const string passwordsDoNotMatchMessage = "Passwords do not match!";
+        const string fillInAllFieldsMessage = "Please fill in all fields!";
 
         // Buttons text
         const string loginButtonText = "Back to Login";
@@ -36,7 +37,7 @@ namespace PokeAPI
         {
             if (LoginStackPanel.Visibility == Visibility.Visible)
             {
-                LoginStackPanel.Visibility = Visibility.Collapsed;
+                LoginStackPanel.Visibility = Visibility.Hidden;
                 RegisterStackPanel.Visibility = Visibility.Visible;
                 currentPanel = RegisterStackPanel;
                 TogglePanelButton.Text = loginButtonText;
@@ -44,7 +45,7 @@ namespace PokeAPI
             else
             {
                 LoginStackPanel.Visibility = Visibility.Visible;
-                RegisterStackPanel.Visibility = Visibility.Collapsed;
+                RegisterStackPanel.Visibility = Visibility.Hidden;
                 currentPanel = LoginStackPanel;
                 TogglePanelButton.Text = registerButtonText;
             }
@@ -52,7 +53,7 @@ namespace PokeAPI
 
         void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            LoginErrorBlock.Visibility = Visibility.Collapsed;
+            LoginErrorBlock.Visibility = Visibility.Hidden;
 
             string userName = UserNameBox.Text;
             string password = PasswordBox.Password;
@@ -86,11 +87,18 @@ namespace PokeAPI
 
         async void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
-            RegisterErrorBlock.Visibility = Visibility.Collapsed;
+            RegisterErrorBlock.Visibility = Visibility.Hidden;
 
             string userName = RegisterUserNameBox.Text;
             string password = RegisterPasswordBox.Password;
             string confirmPassword = RegisterConfirmPasswordBox.Password;
+
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
+            {
+                RegisterErrorBlock.Text = fillInAllFieldsMessage;
+                RegisterErrorBlock.Visibility = Visibility.Visible;
+                return;
+            }
 
             if (password != confirmPassword)
             {

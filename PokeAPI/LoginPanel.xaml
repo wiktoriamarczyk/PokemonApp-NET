@@ -50,8 +50,8 @@
                 </Grid.RowDefinitions>
 
                  <!--User Name Row-->
-                <StackPanel Grid.Row="0" Orientation="Vertical" Margin="20,20,20,20">
-                    <TextBlock x:Name="LoginErrorBlock" Text="Wrong user name or password!" FontWeight="Bold" FontSize="10" Margin="0,5,0,5" Foreground="DarkRed" Visibility="Collapsed"/>
+                <StackPanel Grid.Row="0" Orientation="Vertical" Margin="20,0,20,20">
+                    <TextBlock x:Name="LoginErrorBlock" Text="Wrong user name or password!" FontWeight="Bold" FontSize="10" Margin="0,10,0,0" Foreground="DarkRed" Visibility="Hidden"/>
                     <TextBlock Text="User Name" FontWeight="Bold" FontSize="16" Margin="0,5,0,5"/>
                     <TextBox x:Name="UserNameBox" Grid.Row="1" FontSize="16" />
                 </StackPanel>
@@ -72,7 +72,7 @@
         </StackPanel>
 
         <!-- Register Panel (initially hidden) -->
-        <StackPanel x:Name="RegisterStackPanel" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Background="#AAFFFFFF" Margin="20" Visibility="Collapsed">
+        <StackPanel x:Name="RegisterStackPanel" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Background="#AAFFFFFF" Margin="20" Visibility="Hidden">
             <StackPanel.Effect>
                 <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="5" Opacity="0.3"/>
             </StackPanel.Effect>
@@ -88,8 +88,8 @@
                 </Grid.RowDefinitions>
 
                 <!-- Name Row -->
-                <StackPanel Grid.Row="0" Orientation="Vertical" Margin="20,10,20,0">
-                    <TextBlock x:Name="RegisterErrorBlock" Text="User name already taken!" FontWeight="Bold" FontSize="10" Margin="0,5,0,5" Foreground="DarkRed" Visibility="Collapsed"/>
+                <StackPanel Grid.Row="0" Orientation="Vertical" Margin="20,0,20,0">
+                    <TextBlock x:Name="RegisterErrorBlock" Text="User name already taken!" FontWeight="Bold" FontSize="10" Margin="0,10,0,0" Foreground="DarkRed" Visibility="Hidden"/>
                     <TextBlock Text="User Name" FontWeight="Bold" FontSize="16" Margin="0,5,0,5"/>
                     <TextBox x:Name="RegisterUserNameBox" Grid.Row="1" FontSize="16" />
                 </StackPanel>

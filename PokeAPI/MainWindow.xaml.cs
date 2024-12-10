@@ -62,6 +62,10 @@ namespace PokeAPI
             PokemonGridDisplay.Children.Clear();
             IsHitTestVisible = false;
 
+            PokemonGridDisplay.Rows = Common.pokemonsInRow;
+            PokemonGridDisplay.Columns = Common.pokemonsInColumn;
+            PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+
             var pokemons = await pokemonGridBuilder.CreatePokemonsGrid(currentPage);
             foreach (var pokemon in pokemons)
             {
@@ -234,17 +238,32 @@ namespace PokeAPI
 
             PokemonGridInfo.Visibility = Visibility.Hidden;
 
+            // Skip non-default pokemons
+            filteredData.RemoveAll(p => p.IsDefault == false);
+
+            // If there are more than maxPokemonsInGrid pokemons, set the number of rows to 0 to allow the grid to adjust the number of rows based on the number of elements
+            // Otherwise, set the number of rows to pokemonsInRow
+            if (filteredData.Count <= Common.maxPokemonsInGrid)
+            {
+                PokemonGridDisplay.Rows = Common.pokemonsInRow;
+                PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+            }
+            else
+            {
+                PokemonGridDisplay.Rows = 0;
+                PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+            }
+
+
             foreach (var pokemon in filteredData)
             {
-                if (pokemon.IsDefault == false)
-                    continue;
                 PokemonCompactData pokemonData = await pokemonGridBuilder.InitPokemonBaseData(pokemon);
                 var pokemonElement = CreatePokemonElement(pokemonData);
                 PokemonGridDisplay.Children.Add(pokemonElement);
             }
 
-            PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             PokemonGridScrollViewer.UpdateLayout();
+
             // Enable user input
             IsHitTestVisible = true;
         }
@@ -254,7 +273,9 @@ namespace PokeAPI
             SetPageButtonsVisibilityState(true);
             UpdatePrevPageButtonVisibility();
 
+            SearchTextBox.Text = string.Empty;
             PokemonGridInfo.Visibility = Visibility.Hidden;
+
             // Toggle between favorite pokemons and all pokemons
             favListOpened = !favListOpened;
             if (!favListOpened)
@@ -287,6 +308,19 @@ namespace PokeAPI
                 .Where(p => context.PokemonsUsers.Any(pu => pu.PokemonId == p.Id && pu.UserId == loggedInUser.Id))
                 .ToList();
 
+            // If there are more than maxPokemonsInGrid pokemons, set the number of rows to 0 to allow the grid to adjust the number of rows based on the number of elements
+            // Otherwise, set the number of rows to pokemonsInRow
+            if (pokemonsDB.Count <= Common.maxPokemonsInGrid)
+            {
+                PokemonGridDisplay.Rows = Common.pokemonsInRow;
+                PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+            }
+            else
+            {
+                PokemonGridDisplay.Rows = 0;
+                PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+            }
+
             // Display favorite pokemons in the grid
             foreach (var pokemonDB in pokemonsDB)
             {
@@ -294,16 +328,6 @@ namespace PokeAPI
                 PokemonGridDisplay.Children.Add(pokemonElement);
             }
 
-            //// Convert Data.Pokemon stored in the db to Pokemon from the API
-            //foreach (var pokemonDB in pokemonsDB)
-            //{
-            //    var pokemon = await pokeAPIController.GetPokemon(pokemonDB.PokeApiId);
-            //    PokemonCompactData pokemonData = await pokemonGridBuilder.InitPokemonBaseData(pokemon);
-            //    var pokemonElement = CreatePokemonElement(pokemonData);
-            //    PokemonGridDisplay.Children.Add(pokemonElement);
-            //}
-
-            PokemonGridScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             PokemonGridScrollViewer.UpdateLayout();
         }
 

@@ -69,9 +69,9 @@
         </Button>
 
         <!-- Row 1: Pokemon grid -->
-        <ScrollViewer x:Name="PokemonGridScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
-            <UniformGrid Grid.Row="1" Columns="3" Rows="3" x:Name="PokemonGridDisplay" Margin="20">
-                <!-- Added dynamically from code -->
+        <ScrollViewer x:Name="PokemonGridScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <UniformGrid Grid.Row="1" Columns="3" x:Name="PokemonGridDisplay" Margin="20">
+                <!-- Dynamic content added here -->
             </UniformGrid>
         </ScrollViewer>
 

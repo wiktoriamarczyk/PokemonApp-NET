@@ -6,6 +6,8 @@ namespace PokeAPI
     public class Common
     {
         public const int maxPokemonsInGrid = 9;
+        public const int pokemonsInRow = 3;
+        public const int pokemonsInColumn = 3;
         public const int maxPagesToFetchOnOneRequest = 10;
         public const int minPage = 1;
         public const string language = "en";
