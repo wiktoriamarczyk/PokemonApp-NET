@@ -38,7 +38,7 @@
         </Image>
 
         <!-- Return to main panel button -->
-        <Button Grid.Row="0" Width="50" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
+        <Button Grid.Row="0" Width="80" Height="80" HorizontalAlignment="Left" VerticalAlignment="Top"
                 BorderThickness="0" Background="Transparent" Click="ReturnToMainPanelButton_Click">
             <Button.Content>
                 <Image Source="./Images/home.png" Stretch="UniformToFill"/>
@@ -53,6 +53,9 @@
             </Button.Content>
         </Button>
 
+        <!-- Fav list info -->
+        <TextBlock x:Name="PokeballInfo" FontSize="15" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,80,15,0"/>
+
         <!-- Row 0: Evolution chain -->
         <Grid x:Name="PokemonEvolutionChain" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="5,10,5,5">
             <Grid.RowDefinitions>
@@ -66,7 +69,7 @@
         <!-- Row 1: Basic info -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1" Margin="0,20, 0, 0">
             <TextBlock Text="Height: " FontWeight="Bold" FontSize="20"/>
-            <TextBlock x:Name="PokemonHeight" Margin="5,0" FontSize="20"/>
+            <TextBlock x:Name="PokemonHeight" Margin="5,0" FontSize="20" Foreground="Green"/>
             <TextBlock Text=" | Weight: " FontWeight="Bold" FontSize="20"/>
             <TextBlock x:Name="PokemonWeight"  Margin="5,0" FontSize="20" Foreground="Green"/>
             <TextBlock Text=" | Type: " FontWeight="Bold" FontSize="20"/>

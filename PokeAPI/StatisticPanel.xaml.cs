@@ -35,6 +35,8 @@ namespace PokeAPI
         const string weightUnit = "kg";
         const string addToFavorites = "Catch pokemon in pokeball";
         const string removeFromFavorites = "Release pokemon from pokeball";
+        const string pokemonCatch = "Catch!";
+        const string pokemonRelease = "Release";
 
         public class PokemonChainDisplay
         {
@@ -73,7 +75,7 @@ namespace PokeAPI
             DisplayFormattedBasicData(pokemonData);
             DisplayStatistics(pokemonData);
             DisplayAbilities(pokemonData);
-            InitPokeballTooltip();
+            InitPokeballInfo();
         }
 
         void DisplayAbilities(PokemonCompactData pokemonData)
@@ -264,7 +266,7 @@ namespace PokeAPI
             }
         }
 
-        void InitPokeballTooltip()
+        void InitPokeballInfo()
         {
             Data.User loggedInUser = context.loggedInUser;
             var pokemonEntry = context.Pokemons.FirstOrDefault(p => p.PokeApiId == pokemonId);
@@ -272,15 +274,22 @@ namespace PokeAPI
             if (pokemonEntry == null)
             {
                 PokeballButton.ToolTip = addToFavorites;
+                PokeballInfo.Text = pokemonCatch;
                 return;
             }
 
             var pokemonUserEntry = context.PokemonsUsers.FirstOrDefault(pu => pu.PokemonId == pokemonEntry.Id && pu.UserId == loggedInUser.Id);
 
             if (pokemonUserEntry == null)
+            {
                 PokeballButton.ToolTip = addToFavorites;
+                PokeballInfo.Text = pokemonCatch;
+            }
             else
+            {
                 PokeballButton.ToolTip = removeFromFavorites;
+                PokeballInfo.Text = pokemonRelease;
+            }
         }
 
         async void FavPokemonButton_Click(object sender, RoutedEventArgs e)
@@ -326,7 +335,7 @@ namespace PokeAPI
             }
 
             await context.SaveChangesAsync();
-            InitPokeballTooltip();
+            InitPokeballInfo();
         }
 
         void ReturnToMainPanelButton_Click(object sender, RoutedEventArgs e)

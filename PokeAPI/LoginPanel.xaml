@@ -62,6 +62,7 @@
                     <PasswordBox x:Name="PasswordBox" FontSize="16" Margin="0,5"/>
                 </StackPanel>
 
+                <!-- Login Button Row -->
                 <Button Grid.Row="2" Content="Login" Height="40" FontSize="16" FontWeight="Bold" BorderBrush="Transparent" Background="CornflowerBlue" Foreground="White" Margin="20" Click="LoginButton_Click">
                 <Button.Effect>
                     <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="4" Opacity="0.5"/>

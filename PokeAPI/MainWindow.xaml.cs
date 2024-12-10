@@ -236,6 +236,8 @@ namespace PokeAPI
 
             foreach (var pokemon in filteredData)
             {
+                if (pokemon.IsDefault == false)
+                    continue;
                 PokemonCompactData pokemonData = await pokemonGridBuilder.InitPokemonBaseData(pokemon);
                 var pokemonElement = CreatePokemonElement(pokemonData);
                 PokemonGridDisplay.Children.Add(pokemonElement);
